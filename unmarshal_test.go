@@ -2096,6 +2096,21 @@ func TestUnmarshalInputVariations(t *testing.T) {
 				m["parent_field7"] = map[string]interface{}{"foo": "a", "goo": float64(12), "boo": "c"}
 			},
 		},
+		{
+			name:           "nested_unknown_fields",
+			mode:           ModeFailOnFirstError,
+			expectedErr:    false,
+			expectedResult: true,
+			structModifier: func(p *parentStruct) {
+				p.ParentField1 = childStruct{
+					ChildField1: "a",
+				}
+			},
+			inputMapModifier: func(m map[string]interface{}) {
+				m["parent_field1"] = map[string]interface{}{"child_field1": "a", "foo": "f", "boo": "b"}
+			},
+			expectedMapModifier: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

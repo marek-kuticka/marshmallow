@@ -103,8 +103,9 @@ func (d *decoder) populateStruct(structInstance interface{}, result map[string]i
 				}
 			}
 		} else {
+			value := d.lexer.Interface()
 			if result != nil {
-				result[key] = d.lexer.Interface()
+				result[key] = value
 			}
 		}
 		d.lexer.WantComma()
