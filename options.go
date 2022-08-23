@@ -58,3 +58,10 @@ func buildUnmarshalOptions(options []UnmarshalOption) *unmarshalOptions {
 	}
 	return result
 }
+
+// JSONDataHandler allow types to handle JSON data as maps.
+// Types should implement this interface if they wish to act on the map representation of parsed JSON input.
+// This is mainly used to allow nested objects to capture unknown fields and leverage marshmallow's abilities.
+type JSONDataHandler interface {
+	HandleJSONData(data map[string]interface{})
+}

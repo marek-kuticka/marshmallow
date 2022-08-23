@@ -2281,17 +2281,17 @@ func TestUnmarshalSpecialInput(t *testing.T) {
 	}
 }
 
-type parent struct {
-	child
+type embeddingParent struct {
+	embeddingChild
 }
 
-type child struct {
+type embeddingChild struct {
 	Field string `json:"field"`
 }
 
 func TestEmbedding(t *testing.T) {
 	t.Run("test_embedded_values", func(t *testing.T) {
-		p := parent{}
+		p := embeddingParent{}
 		result, err := Unmarshal([]byte(`{"field":"value"}`), &p)
 		if err != nil {
 			t.Errorf("unexpected error %v", err)
@@ -2301,6 +2301,42 @@ func TestEmbedding(t *testing.T) {
 		}
 		if len(result) != 1 || result["field"] != "value" {
 			t.Errorf("missing embedded value in map %+v", result)
+		}
+	})
+}
+
+type handleJSONDataParent struct {
+	Known  string              `json:"known"`
+	Nested handleJSONDataChild `json:"nested"`
+}
+
+type handleJSONDataChild struct {
+	Known string `json:"known"`
+
+	Data map[string]interface{} `json:"-"`
+}
+
+func (c *handleJSONDataChild) HandleJSONData(data map[string]interface{}) {
+	c.Data = data
+}
+
+func TestJSONDataHandler(t *testing.T) {
+	t.Run("test_JSONDataHandler", func(t *testing.T) {
+		data := []byte(`{"known": "foo","unknown": "boo","nested": {"known": "goo","unknown": "doo"}}`)
+		p := &handleJSONDataParent{}
+		result, err := Unmarshal(data, p)
+		if err != nil {
+			t.Errorf("unexpected error %v", err)
+		}
+		_, ok := result["nested"].(handleJSONDataChild)
+		if !ok {
+			t.Error("invalid map value")
+		}
+		if p.Nested.Data == nil {
+			t.Error("HandleJSONData not called")
+		}
+		if len(p.Nested.Data) != 2 || p.Nested.Data["known"] != "goo" || p.Nested.Data["unknown"] != "doo" {
+			t.Error("invalid JSON data")
 		}
 	})
 }

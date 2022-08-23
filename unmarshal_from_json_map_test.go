@@ -2260,7 +2260,7 @@ func TestUnmarshalFromJSONMapSpecialInput(t *testing.T) {
 
 func TestUnmarshalFromJSONMapEmbedding(t *testing.T) {
 	t.Run("test_embedded_values", func(t *testing.T) {
-		p := parent{}
+		p := embeddingParent{}
 		result, err := UnmarshalFromJSONMap(map[string]interface{}{"field": "value"}, &p)
 		if err != nil {
 			t.Errorf("unexpected error %v", err)
@@ -2270,6 +2270,34 @@ func TestUnmarshalFromJSONMapEmbedding(t *testing.T) {
 		}
 		if len(result) != 1 || result["field"] != "value" {
 			t.Errorf("missing embedded value in map %+v", result)
+		}
+	})
+}
+
+func TestUnmarshalFromJSONMapJSONDataHandler(t *testing.T) {
+	t.Run("test_JSONDataHandler", func(t *testing.T) {
+		data := map[string]interface{}{
+			"known":   "foo",
+			"unknown": "boo",
+			"nested": map[string]interface{}{
+				"known":   "goo",
+				"unknown": "doo",
+			},
+		}
+		p := &handleJSONDataParent{}
+		result, err := UnmarshalFromJSONMap(data, p)
+		if err != nil {
+			t.Errorf("unexpected error %v", err)
+		}
+		_, ok := result["nested"].(handleJSONDataChild)
+		if !ok {
+			t.Error("invalid map value")
+		}
+		if p.Nested.Data == nil {
+			t.Error("HandleJSONData not called")
+		}
+		if len(p.Nested.Data) != 2 || p.Nested.Data["known"] != "goo" || p.Nested.Data["unknown"] != "doo" {
+			t.Error("invalid JSON data")
 		}
 	})
 }

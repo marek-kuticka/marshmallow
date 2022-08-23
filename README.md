@@ -6,10 +6,14 @@
 [![Run Tests](https://img.shields.io/github/workflow/status/perimeterx/marshmallow/Go?label=Run%20Tests&logo=github)](https://github.com/PerimeterX/marshmallow/actions/workflows/go.yml?query=branch%3Amain)
 [![Dependency Review](https://img.shields.io/github/workflow/status/perimeterx/marshmallow/Dependency%20Review?label=Dependency%20Review&logo=github)](https://github.com/PerimeterX/marshmallow/actions/workflows/dependency-review.yml?query=branch%3Amain)
 [![Go Report Card](https://goreportcard.com/badge/github.com/perimeterx/marshmallow)](https://goreportcard.com/report/github.com/perimeterx/marshmallow)
-![Manual Code Coverage](https://img.shields.io/badge/coverage-91.3%25-green)
+![Manual Code Coverage](https://img.shields.io/badge/coverage-91.9%25-green)
 [![Go Reference](https://pkg.go.dev/badge/github.com/perimeterx/marshmallow.svg)](https://pkg.go.dev/github.com/perimeterx/marshmallow)
 [![Licence](https://img.shields.io/github/license/perimeterx/marshmallow)](LICENSE)
 [![Latest Release](https://img.shields.io/github/v/release/perimeterx/marshmallow)](https://github.com/PerimeterX/marshmallow/releases)
+![Top Languages](https://img.shields.io/github/languages/top/perimeterx/marshmallow)
+[![Issues](https://img.shields.io/github/issues-closed/perimeterx/marshmallow?color=%238250df&logo=github)](https://github.com/PerimeterX/marshmallow/issues)
+[![Pull Requests](https://img.shields.io/github/issues-pr-closed-raw/perimeterx/marshmallow?color=%238250df&label=merged%20pull%20requests&logo=github)](https://github.com/PerimeterX/marshmallow/pulls)
+[![Commits](https://img.shields.io/github/last-commit/perimeterx/marshmallow)](https://github.com/PerimeterX/marshmallow/commits/main)
 
 <img align="right" width="200" alt="marshmallow-gopher" src="https://raw.githubusercontent.com/PerimeterX/marshmallow/assets/sticker7.png">
 
@@ -168,10 +172,15 @@ and
 Each of them can operate in three possible [modes](https://github.com/PerimeterX/marshmallow/blob/0e0218ab860be8a4b5f57f5ff239f281c250c5da/options.go#L30),
 and allow setting [skipPopulateStruct](https://github.com/PerimeterX/marshmallow/blob/0e0218ab860be8a4b5f57f5ff239f281c250c5da/options.go#L41) mode.
 
+In order to capture unknown nested fields, structs must implement [JSONDataHandler](https://github.com/PerimeterX/marshmallow/blob/2d254bf2ed5f9b02cafb8ba6eaa726cba38bc92b/options.go#L65).
+More info [here](https://github.com/PerimeterX/marshmallow/issues/15). 
+
 Marshmallow also supports caching of refection information using 
 [EnableCache](https://github.com/PerimeterX/marshmallow/blob/d3500aa5b0f330942b178b155da933c035dd3906/cache.go#L40)
 and
 [EnableCustomCache](https://github.com/PerimeterX/marshmallow/blob/d3500aa5b0f330942b178b155da933c035dd3906/cache.go#L35).
+
+**Examples can be found [here](example_test.go)**
 
 # Marshmallow Logo
 
