@@ -83,7 +83,9 @@ func (d *decoder) populateStruct(structInstance interface{}, result map[string]i
 					assignValue(field, value)
 				}
 				if result != nil {
-					result[key] = value
+					if !d.options.excludeKnownFieldsFromMap {
+						result[key] = value
+					}
 				} else if clone != nil {
 					clone[key] = value
 				}

@@ -81,7 +81,9 @@ func (m *mapDecoder) populateStruct(path []string, data map[string]interface{}, 
 					assignValue(field, value)
 				}
 				if result != nil {
-					result[key] = value
+					if !m.options.excludeKnownFieldsFromMap {
+						result[key] = value
+					}
 				}
 			} else {
 				switch m.options.mode {

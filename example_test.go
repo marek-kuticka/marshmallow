@@ -53,6 +53,14 @@ func ExampleUnmarshal() {
 	result, err = marshmallow.Unmarshal([]byte(`{"foo":2,"boo":[1,2,3]}`), &v,
 		marshmallow.WithMode(marshmallow.ModeFailOverToOriginalValue))
 	fmt.Printf("ModeFailOverToOriginalValue and invalid value: result=%+v, err=%T\n", result, err)
+
+	// unmarshal with mode marshmallow.ModeExcludeKnownFieldsFromReturnedMap and valid value
+	// this will return unmarshalled result without known fields
+	v = flatStruct{}
+	result, err = marshmallow.Unmarshal([]byte(`{"foo":"bar","boo":[1,2,3],"goo":"untyped"}`), &v,
+		marshmallow.WithExcludeKnownFieldsFromMap(true))
+	fmt.Printf("ModeExcludeKnownFieldsFromReturnedMap and valid value: v=%+v, result=%+v, err=%T\n", v, result, err)
+
 	// Output:
 	// ModeFailOnFirstError and valid value: v={Foo:bar Boo:[1 2 3]}, result=map[boo:[1 2 3] foo:bar], err=<nil>
 	// ModeFailOnFirstError and invalid value: result=map[], err=*jlexer.LexerError
@@ -60,6 +68,7 @@ func ExampleUnmarshal() {
 	// ModeAllowMultipleErrors and invalid value: result=map[boo:[1 2 3]], err=*marshmallow.MultipleLexerError
 	// ModeFailOverToOriginalValue and valid value: v={Foo:bar Boo:[1 2 3]}, result=map[boo:[1 2 3] foo:bar], err=<nil>
 	// ModeFailOverToOriginalValue and invalid value: result=map[boo:[1 2 3] foo:2], err=*marshmallow.MultipleLexerError
+	// ModeExcludeKnownFieldsFromReturnedMap and valid value: v={Foo:bar Boo:[1 2 3]}, result=map[goo:untyped], err=<nil>
 }
 
 func ExampleUnmarshalFromJSONMap() {

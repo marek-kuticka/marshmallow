@@ -2301,3 +2301,32 @@ func TestUnmarshalFromJSONMapJSONDataHandler(t *testing.T) {
 		}
 	})
 }
+
+func TestUnmarshalFromJSONMapExcludeKnownFieldsFromMap(t *testing.T) {
+	t.Run("test_exclude_known_fields_from_map_with_empty_map", func(t *testing.T) {
+		p := Person{}
+		result, err := UnmarshalFromJSONMap(map[string]interface{}{"firstName": "string_firstName", "lastName": "string_LastName"}, &p, WithExcludeKnownFieldsFromMap(true))
+		if err != nil {
+			t.Errorf("unexpected error %v", err)
+		}
+		if len(result) != 0 {
+			t.Errorf("failure in excluding untyped fields")
+		}
+	})
+
+	t.Run("test_exclude_known_fields_from_map", func(t *testing.T) {
+		p := Person{}
+		result, err := UnmarshalFromJSONMap(map[string]interface{}{"firstName": "string_firstName", "lastName": "string_LastName", "unknown": "string_unknown"}, &p, WithExcludeKnownFieldsFromMap(true))
+		if err != nil {
+			t.Errorf("unexpected error %v", err)
+		}
+		if len(result) != 1 {
+			t.Errorf("failure in excluding fields")
+		}
+
+		_, exists := result["unknown"]
+		if !exists {
+			t.Errorf("unknown field is missing in the result")
+		}
+	})
+}

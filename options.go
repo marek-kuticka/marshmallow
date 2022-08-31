@@ -44,11 +44,21 @@ func WithSkipPopulateStruct(skipPopulateStruct bool) UnmarshalOption {
 	}
 }
 
+// WithExcludeKnownFieldsFromMap is an UnmarshalOption function to set the excludeKnownFieldsFromMap option.
+// Exclude known fields flag is set to false by default.
+// When the flag is set to true, fields specified in the input struct (known fields) will be excluded from the result map
+func WithExcludeKnownFieldsFromMap(excludeKnownFields bool) UnmarshalOption {
+	return func(options *unmarshalOptions) {
+		options.excludeKnownFieldsFromMap = excludeKnownFields
+	}
+}
+
 type UnmarshalOption func(*unmarshalOptions)
 
 type unmarshalOptions struct {
-	mode               Mode
-	skipPopulateStruct bool
+	mode                      Mode
+	skipPopulateStruct        bool
+	excludeKnownFieldsFromMap bool
 }
 
 func buildUnmarshalOptions(options []UnmarshalOption) *unmarshalOptions {

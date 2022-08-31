@@ -2341,6 +2341,40 @@ func TestJSONDataHandler(t *testing.T) {
 	})
 }
 
+type Person struct {
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+}
+
+func TestExcludeKnownFieldsFromMap(t *testing.T) {
+	t.Run("test_exclude_known_fields_from_map_with_empty_map", func(t *testing.T) {
+		p := Person{}
+		result, err := Unmarshal([]byte(`{"firstName": "string_firstName", "lastName": "string_lastName"}`), &p, WithExcludeKnownFieldsFromMap(true))
+		if err != nil {
+			t.Errorf("unexpected error %v", err)
+		}
+		if len(result) != 0 {
+			t.Errorf("failure in excluding untyped fields")
+		}
+	})
+
+	t.Run("test_exclude_known_fields_from_map", func(t *testing.T) {
+		p := Person{}
+		result, err := Unmarshal([]byte(`{"firstName": "string_firstName", "lastName": "string_lastName", "unknown":"string_unknown"}`), &p, WithExcludeKnownFieldsFromMap(true))
+		if err != nil {
+			t.Errorf("unexpected error %v", err)
+		}
+		if len(result) != 1 {
+			t.Errorf("failure in excluding untyped fields")
+		}
+
+		_, exists := result["unknown"]
+		if !exists {
+			t.Errorf("unknown field is missing in the result")
+		}
+	})
+}
+
 var extraData = map[string]interface{}{
 	"extra1": "foo",
 	"extra2": float64(12),
