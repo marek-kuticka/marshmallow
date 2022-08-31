@@ -165,12 +165,15 @@ func isAllowedToDrive(data []byte) (bool, error) {
 
 ## API
 
-Marshmallow exposes two main API functions - 
+Marshmallow exposes two main API functions -
 [Unmarshal](https://github.com/PerimeterX/marshmallow/blob/0e0218ab860be8a4b5f57f5ff239f281c250c5da/unmarshal.go#L27)
 and
 [UnmarshalFromJSONMap](https://github.com/PerimeterX/marshmallow/blob/0e0218ab860be8a4b5f57f5ff239f281c250c5da/unmarshal_from_json_map.go#L37).
-Each of them can operate in three possible [modes](https://github.com/PerimeterX/marshmallow/blob/0e0218ab860be8a4b5f57f5ff239f281c250c5da/options.go#L30),
-and allow setting [skipPopulateStruct](https://github.com/PerimeterX/marshmallow/blob/0e0218ab860be8a4b5f57f5ff239f281c250c5da/options.go#L41) mode.
+While unmarshalling, marshmallow supports the following optional options:
+
+* Setting the mode for handling invalid data using the [WithMode](https://github.com/PerimeterX/marshmallow/blob/0e0218ab860be8a4b5f57f5ff239f281c250c5da/options.go#L30) function.
+* Excluding known fields from the result map using the [WithExcludeKnownFieldsFromMap](https://github.com/PerimeterX/marshmallow/blob/457669ae9973895584f2636eabfc104140d3b700/options.go#L50) function. 
+* Skipping struct population to boost performance using the [WithSkipPopulateStruct](https://github.com/PerimeterX/marshmallow/blob/0e0218ab860be8a4b5f57f5ff239f281c250c5da/options.go#L41) function.
 
 In order to capture unknown nested fields, structs must implement [JSONDataHandler](https://github.com/PerimeterX/marshmallow/blob/2d254bf2ed5f9b02cafb8ba6eaa726cba38bc92b/options.go#L65).
 More info [here](https://github.com/PerimeterX/marshmallow/issues/15). 
