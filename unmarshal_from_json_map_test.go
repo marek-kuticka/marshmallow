@@ -2305,7 +2305,14 @@ func TestUnmarshalFromJSONMapJSONDataHandler(t *testing.T) {
 func TestUnmarshalFromJSONMapExcludeKnownFieldsFromMap(t *testing.T) {
 	t.Run("test_exclude_known_fields_from_map_with_empty_map", func(t *testing.T) {
 		p := Person{}
-		result, err := UnmarshalFromJSONMap(map[string]interface{}{"firstName": "string_firstName", "lastName": "string_LastName"}, &p, WithExcludeKnownFieldsFromMap(true))
+		result, err := UnmarshalFromJSONMap(
+			map[string]interface{}{
+				"firstName": "string_firstName",
+				"lastName":  "string_LastName",
+			},
+			&p,
+			WithExcludeKnownFieldsFromMap(true),
+		)
 		if err != nil {
 			t.Errorf("unexpected error %v", err)
 		}
@@ -2316,7 +2323,15 @@ func TestUnmarshalFromJSONMapExcludeKnownFieldsFromMap(t *testing.T) {
 
 	t.Run("test_exclude_known_fields_from_map", func(t *testing.T) {
 		p := Person{}
-		result, err := UnmarshalFromJSONMap(map[string]interface{}{"firstName": "string_firstName", "lastName": "string_LastName", "unknown": "string_unknown"}, &p, WithExcludeKnownFieldsFromMap(true))
+		result, err := UnmarshalFromJSONMap(
+			map[string]interface{}{
+				"firstName": "string_firstName",
+				"lastName":  "string_LastName",
+				"unknown":   "string_unknown",
+			},
+			&p,
+			WithExcludeKnownFieldsFromMap(true),
+		)
 		if err != nil {
 			t.Errorf("unexpected error %v", err)
 		}
@@ -2327,6 +2342,104 @@ func TestUnmarshalFromJSONMapExcludeKnownFieldsFromMap(t *testing.T) {
 		_, exists := result["unknown"]
 		if !exists {
 			t.Errorf("unknown field is missing in the result")
+		}
+	})
+}
+
+func TestUnmarshalFromJSONMapNestedSkipPopulate(t *testing.T) {
+	t.Run("TestUnmarshalFromJSONMapNestedSkipPopulate", func(t *testing.T) {
+		p := &nestedSkipPopulateParent{}
+		result, err := UnmarshalFromJSONMap(
+			map[string]interface{}{"child": map[string]interface{}{"foo": "value"}},
+			p,
+			WithSkipPopulateStruct(true),
+		)
+		if err != nil {
+			t.Errorf("unexpected error %v", err)
+		}
+		value, exists := result["child"]
+		if !exists {
+			t.Error("missing child element in result map")
+		}
+		child, ok := value.(nestedSkipPopulateChild)
+		if !ok {
+			t.Errorf("invalid child type %T in result map", child)
+		}
+		if child.Foo != "value" {
+			t.Errorf("invalid value '%s' in child", child.Foo)
+		}
+	})
+	t.Run("TestUnmarshalFromJSONMapNestedSkipPopulate_with_ModeFailOverToOriginalValue", func(t *testing.T) {
+		p := &nestedSkipPopulateParent{}
+		result, err := UnmarshalFromJSONMap(
+			map[string]interface{}{"child": map[string]interface{}{"foo": float64(12)}},
+			p,
+			WithMode(ModeFailOverToOriginalValue),
+			WithSkipPopulateStruct(true),
+		)
+		if err == nil {
+			t.Error("expected error")
+		}
+		value, exists := result["child"]
+		if !exists {
+			t.Error("missing child element in result map")
+		}
+		child, ok := value.(map[string]interface{})
+		if !ok {
+			t.Errorf("invalid child type %T in result map", child)
+		}
+		if child["foo"] != float64(12) {
+			t.Errorf("invalid value '%v' in child", child["foo"])
+		}
+	})
+	t.Run("TestUnmarshalFromJSONMapNestedSkipPopulate_all_fields_exist_in_root_struct", func(t *testing.T) {
+		s := &failOverStruct{}
+		result, err := UnmarshalFromJSONMap(
+			map[string]interface{}{"a": "a_val", "b": float64(12), "c": "c_val"},
+			s,
+			WithMode(ModeFailOverToOriginalValue),
+			WithSkipPopulateStruct(true),
+		)
+		if err == nil {
+			t.Error("expected error")
+		}
+		if result["a"] != "a_val" {
+			t.Errorf("invalid value '%v' in a", result["a"])
+		}
+		if result["b"] != float64(12) {
+			t.Errorf("invalid value '%v' in a", result["b"])
+		}
+		if result["c"] != "c_val" {
+			t.Errorf("invalid value '%v' in a", result["c"])
+		}
+	})
+	t.Run("TestUnmarshalFromJSONMapNestedSkipPopulate_all_fields_exist_in_nested_struct", func(t *testing.T) {
+		s := &failOverParent{}
+		result, err := UnmarshalFromJSONMap(
+			map[string]interface{}{"child": map[string]interface{}{"a": "a_val", "b": float64(12), "c": "c_val"}},
+			s,
+			WithMode(ModeFailOverToOriginalValue),
+			WithSkipPopulateStruct(true),
+		)
+		if err == nil {
+			t.Error("expected error")
+		}
+		val, ok := result["child"]
+		if !ok {
+			t.Error("missing child in result value")
+		}
+		child, ok := val.(map[string]interface{})
+		if !ok {
+			t.Error("invalid child type in result value")
+		}
+		if child["a"] != "a_val" {
+			t.Errorf("invalid value '%v' in a", child["a"])
+		}
+		if child["b"] != float64(12) {
+			t.Errorf("invalid value '%v' in a", child["b"])
+		}
+		if child["c"] != "c_val" {
+			t.Errorf("invalid value '%v' in a", child["c"])
 		}
 	})
 }

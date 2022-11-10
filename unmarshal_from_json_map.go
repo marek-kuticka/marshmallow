@@ -42,7 +42,7 @@ func UnmarshalFromJSONMap(data map[string]interface{}, v interface{}, options ..
 	d := &mapDecoder{options: opts}
 	result := make(map[string]interface{})
 	if data != nil {
-		d.populateStruct(nil, data, v, result)
+		d.populateStruct(false, nil, data, v, result)
 	}
 	if opts.mode == ModeAllowMultipleErrors || opts.mode == ModeFailOverToOriginalValue {
 		if len(d.errs) == 0 {
@@ -64,8 +64,8 @@ type mapDecoder struct {
 	errs    []error
 }
 
-func (m *mapDecoder) populateStruct(path []string, data map[string]interface{}, structInstance interface{}, result map[string]interface{}) (interface{}, bool) {
-	doPopulate := !m.options.skipPopulateStruct || result == nil
+func (m *mapDecoder) populateStruct(forcePopulate bool, path []string, data map[string]interface{}, structInstance interface{}, result map[string]interface{}) (interface{}, bool) {
+	doPopulate := !m.options.skipPopulateStruct || forcePopulate
 	var structValue reflect.Value
 	if doPopulate {
 		structValue = reflectStructValue(structInstance)
@@ -74,14 +74,14 @@ func (m *mapDecoder) populateStruct(path []string, data map[string]interface{}, 
 	for key, inputValue := range data {
 		refInfo, exists := fields[key]
 		if exists {
-			value, isValidType := m.valueByReflectType(append(path, key), inputValue, refInfo.t, false)
+			value, isValidType := m.valueByReflectType(append(path, key), inputValue, refInfo.t)
 			if isValidType {
 				if value != nil && doPopulate {
 					field := refInfo.field(structValue)
 					assignValue(field, value)
 				}
-				if result != nil {
-					if !m.options.excludeKnownFieldsFromMap {
+				if !m.options.excludeKnownFieldsFromMap {
+					if result != nil {
 						result[key] = value
 					}
 				}
@@ -90,7 +90,7 @@ func (m *mapDecoder) populateStruct(path []string, data map[string]interface{}, 
 				case ModeFailOnFirstError:
 					return nil, false
 				case ModeFailOverToOriginalValue:
-					if result != nil {
+					if !forcePopulate {
 						result[key] = value
 					} else {
 						return data, false
@@ -106,7 +106,7 @@ func (m *mapDecoder) populateStruct(path []string, data map[string]interface{}, 
 	return structInstance, true
 }
 
-func (m *mapDecoder) valueByReflectType(path []string, v interface{}, t reflect.Type, isPtr bool) (interface{}, bool) {
+func (m *mapDecoder) valueByReflectType(path []string, v interface{}, t reflect.Type) (interface{}, bool) {
 	if t.Implements(unmarshalerFromJSONMapType) {
 		result := reflect.New(t.Elem()).Interface()
 		m.valueFromCustomUnmarshaler(v, result.(UnmarshalerFromJSONMap))
@@ -149,7 +149,7 @@ func (m *mapDecoder) valueByReflectType(path []string, v interface{}, t reflect.
 		if t.Elem().Kind() == reflect.Struct {
 			return m.buildStruct(path, v, t.Elem())
 		}
-		value, valid := m.valueByReflectType(path, v, t.Elem(), true)
+		value, valid := m.valueByReflectType(path, v, t.Elem())
 		if value == nil {
 			return nil, valid
 		}
@@ -181,7 +181,7 @@ func (m *mapDecoder) buildSlice(path []string, v interface{}, sliceType reflect.
 		sliceValue = reflect.MakeSlice(sliceType, 0, 0)
 	}
 	for _, element := range arr {
-		current, valid := m.valueByReflectType(path, element, elemType, false)
+		current, valid := m.valueByReflectType(path, element, elemType)
 		if !valid {
 			if m.options.mode != ModeFailOverToOriginalValue {
 				return nil, true
@@ -205,7 +205,7 @@ func (m *mapDecoder) buildArray(path []string, v interface{}, arrayType reflect.
 	elemType := arrayType.Elem()
 	arrayValue := reflect.New(arrayType).Elem()
 	for i, element := range arr {
-		current, valid := m.valueByReflectType(path, element, elemType, false)
+		current, valid := m.valueByReflectType(path, element, elemType)
 		if !valid {
 			if m.options.mode != ModeFailOverToOriginalValue {
 				return nil, true
@@ -233,14 +233,14 @@ func (m *mapDecoder) buildMap(path []string, v interface{}, mapType reflect.Type
 	mapValue := reflect.MakeMap(mapType)
 	for inputKey, inputValue := range mp {
 		keyPath := append(path, inputKey)
-		key, valid := m.valueByReflectType(keyPath, inputKey, keyType, false)
+		key, valid := m.valueByReflectType(keyPath, inputKey, keyType)
 		if !valid {
 			if m.options.mode != ModeFailOverToOriginalValue {
 				return nil, true
 			}
 			return v, true
 		}
-		value, valid := m.valueByReflectType(keyPath, inputValue, valueType, false)
+		value, valid := m.valueByReflectType(keyPath, inputValue, valueType)
 		if !valid {
 			if m.options.mode != ModeFailOverToOriginalValue {
 				return nil, true
@@ -264,10 +264,10 @@ func (m *mapDecoder) buildStruct(path []string, v interface{}, structType reflec
 	value := reflect.New(structType).Interface()
 	handler, ok := value.(JSONDataHandler)
 	if !ok {
-		return m.populateStruct(path, mp, value, nil)
+		return m.populateStruct(true, path, mp, value, nil)
 	}
 	data := make(map[string]interface{})
-	result, valid := m.populateStruct(path, mp, value, data)
+	result, valid := m.populateStruct(true, path, mp, value, data)
 	if valid {
 		handler.HandleJSONData(data)
 	}

@@ -37,7 +37,7 @@ func Unmarshal(data []byte, v interface{}, options ...UnmarshalOption) (map[stri
 	} else if !d.lexer.IsDelim('{') {
 		return nil, ErrInvalidInput
 	} else {
-		d.populateStruct(v, result)
+		d.populateStruct(false, v, result)
 	}
 	d.lexer.Consumed()
 	if useMultipleErrors {
@@ -59,8 +59,8 @@ type decoder struct {
 	lexer   *jlexer.Lexer
 }
 
-func (d *decoder) populateStruct(structInstance interface{}, result map[string]interface{}) (interface{}, bool) {
-	doPopulate := !d.options.skipPopulateStruct || result == nil
+func (d *decoder) populateStruct(forcePopulate bool, structInstance interface{}, result map[string]interface{}) (interface{}, bool) {
+	doPopulate := !d.options.skipPopulateStruct || forcePopulate
 	var structValue reflect.Value
 	if doPopulate {
 		structValue = reflectStructValue(structInstance)
@@ -76,25 +76,26 @@ func (d *decoder) populateStruct(structInstance interface{}, result map[string]i
 		d.lexer.WantColon()
 		refInfo, exists := fields[key]
 		if exists {
-			value, isValidType := d.valueByReflectType(refInfo.t, false)
+			value, isValidType := d.valueByReflectType(refInfo.t)
 			if isValidType {
 				if value != nil && doPopulate {
 					field := refInfo.field(structValue)
 					assignValue(field, value)
 				}
-				if result != nil {
-					if !d.options.excludeKnownFieldsFromMap {
+				if !d.options.excludeKnownFieldsFromMap {
+					if result != nil {
 						result[key] = value
 					}
-				} else if clone != nil {
-					clone[key] = value
+					if clone != nil {
+						clone[key] = value
+					}
 				}
 			} else {
 				switch d.options.mode {
 				case ModeFailOnFirstError:
 					return nil, false
 				case ModeFailOverToOriginalValue:
-					if result != nil {
+					if !forcePopulate {
 						result[key] = value
 					} else {
 						clone[key] = value
@@ -109,6 +110,9 @@ func (d *decoder) populateStruct(structInstance interface{}, result map[string]i
 			if result != nil {
 				result[key] = value
 			}
+			if clone != nil {
+				clone[key] = value
+			}
 		}
 		d.lexer.WantComma()
 	}
@@ -116,7 +120,7 @@ func (d *decoder) populateStruct(structInstance interface{}, result map[string]i
 	return structInstance, true
 }
 
-func (d *decoder) valueByReflectType(t reflect.Type, isPtr bool) (interface{}, bool) {
+func (d *decoder) valueByReflectType(t reflect.Type) (interface{}, bool) {
 	if t.Implements(unmarshalerType) {
 		result := reflect.New(t.Elem()).Interface()
 		d.valueFromCustomUnmarshaler(result.(json.Unmarshaler))
@@ -160,7 +164,7 @@ func (d *decoder) valueByReflectType(t reflect.Type, isPtr bool) (interface{}, b
 		if t.Elem().Kind() == reflect.Struct {
 			return d.buildStruct(t.Elem())
 		}
-		value, valid := d.valueByReflectType(t.Elem(), true)
+		value, valid := d.valueByReflectType(t.Elem())
 		if value == nil {
 			return nil, valid
 		}
@@ -193,7 +197,7 @@ func (d *decoder) buildSlice(sliceType reflect.Type) (interface{}, bool) {
 		sliceValue = reflect.MakeSlice(sliceType, 0, 0)
 	}
 	for !d.lexer.IsDelim(']') {
-		current, valid := d.valueByReflectType(elemType, false)
+		current, valid := d.valueByReflectType(elemType)
 		if !valid {
 			if d.options.mode != ModeFailOverToOriginalValue {
 				d.drainLexerArray(nil)
@@ -223,7 +227,7 @@ func (d *decoder) buildArray(arrayType reflect.Type) (interface{}, bool) {
 	arrayValue := reflect.New(arrayType).Elem()
 	d.lexer.Delim('[')
 	for i := 0; !d.lexer.IsDelim(']'); i++ {
-		current, valid := d.valueByReflectType(elemType, false)
+		current, valid := d.valueByReflectType(elemType)
 		if !valid {
 			if d.options.mode != ModeFailOverToOriginalValue {
 				d.drainLexerArray(nil)
@@ -256,7 +260,7 @@ func (d *decoder) buildMap(mapType reflect.Type) (interface{}, bool) {
 	valueType := mapType.Elem()
 	mapValue := reflect.MakeMap(mapType)
 	for !d.lexer.IsDelim('}') {
-		key, valid := d.valueByReflectType(keyType, false)
+		key, valid := d.valueByReflectType(keyType)
 		if !valid {
 			if d.options.mode != ModeFailOverToOriginalValue {
 				d.lexer.WantColon()
@@ -275,7 +279,7 @@ func (d *decoder) buildMap(mapType reflect.Type) (interface{}, bool) {
 			return result, true
 		}
 		d.lexer.WantColon()
-		value, valid := d.valueByReflectType(valueType, false)
+		value, valid := d.valueByReflectType(valueType)
 		if !valid {
 			if d.options.mode != ModeFailOverToOriginalValue {
 				d.lexer.WantComma()
@@ -308,10 +312,10 @@ func (d *decoder) buildStruct(structType reflect.Type) (interface{}, bool) {
 	value := reflect.New(structType).Interface()
 	handler, ok := value.(JSONDataHandler)
 	if !ok {
-		return d.populateStruct(value, nil)
+		return d.populateStruct(true, value, nil)
 	}
 	data := make(map[string]interface{})
-	result, valid := d.populateStruct(value, data)
+	result, valid := d.populateStruct(true, value, data)
 	if valid {
 		handler.HandleJSONData(data)
 	}

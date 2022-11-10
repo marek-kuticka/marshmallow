@@ -2375,12 +2375,128 @@ func TestExcludeKnownFieldsFromMap(t *testing.T) {
 	})
 }
 
+func TestNestedSkipPopulate(t *testing.T) {
+	t.Run("TestNestedSkipPopulate", func(t *testing.T) {
+		p := &nestedSkipPopulateParent{}
+		result, err := Unmarshal([]byte(`{"child":{"foo":"value"}}`), p, WithSkipPopulateStruct(true))
+		if err != nil {
+			t.Errorf("unexpected error %v", err)
+		}
+		value, exists := result["child"]
+		if !exists {
+			t.Error("missing child element in result map")
+		}
+		child, ok := value.(nestedSkipPopulateChild)
+		if !ok {
+			t.Errorf("invalid child type %T in result map", child)
+		}
+		if child.Foo != "value" {
+			t.Errorf("invalid value '%s' in child", child.Foo)
+		}
+	})
+	t.Run("TestNestedSkipPopulate_with_ModeFailOverToOriginalValue", func(t *testing.T) {
+		p := &nestedSkipPopulateParent{}
+		result, err := Unmarshal(
+			[]byte(`{"child":{"abc":"123","foo":12}}`),
+			p,
+			WithMode(ModeFailOverToOriginalValue),
+			WithSkipPopulateStruct(true),
+		)
+		if err == nil {
+			t.Error("expected error")
+		}
+		value, exists := result["child"]
+		if !exists {
+			t.Error("missing child element in result map")
+		}
+		child, ok := value.(map[string]interface{})
+		if !ok {
+			t.Errorf("invalid child type %T in result map", child)
+		}
+		if child["foo"] != float64(12) {
+			t.Errorf("invalid value '%v' in child", child["foo"])
+		}
+	})
+	t.Run("TestNestedSkipPopulate_all_fields_exist_in_root_struct", func(t *testing.T) {
+		s := &failOverStruct{}
+		result, err := Unmarshal(
+			[]byte(`{"a":"a_val","b":12,"c":"c_val"}}`),
+			s,
+			WithMode(ModeFailOverToOriginalValue),
+			WithSkipPopulateStruct(true),
+		)
+		if err == nil {
+			t.Error("expected error")
+		}
+		if result["a"] != "a_val" {
+			t.Errorf("invalid value '%v' in a", result["a"])
+		}
+		if result["b"] != float64(12) {
+			t.Errorf("invalid value '%v' in a", result["b"])
+		}
+		if result["c"] != "c_val" {
+			t.Errorf("invalid value '%v' in a", result["c"])
+		}
+	})
+	t.Run("TestNestedSkipPopulate_all_fields_exist_in_nested_struct", func(t *testing.T) {
+		s := &failOverParent{}
+		result, err := Unmarshal(
+			[]byte(`{"child":{"a":"a_val","b":12,"c":"c_val"}}}`),
+			s,
+			WithMode(ModeFailOverToOriginalValue),
+			WithSkipPopulateStruct(true),
+		)
+		if err == nil {
+			t.Error("expected error")
+		}
+		val, ok := result["child"]
+		if !ok {
+			t.Error("missing child in result value")
+		}
+		child, ok := val.(map[string]interface{})
+		if !ok {
+			t.Error("invalid child type in result value")
+		}
+		if child["a"] != "a_val" {
+			t.Errorf("invalid value '%v' in a", child["a"])
+		}
+		if child["b"] != float64(12) {
+			t.Errorf("invalid value '%v' in a", child["b"])
+		}
+		if child["c"] != "c_val" {
+			t.Errorf("invalid value '%v' in a", child["c"])
+		}
+	})
+}
+
+type nestedSkipPopulateParent struct {
+	Child nestedSkipPopulateChild `json:"child"`
+}
+
+type nestedSkipPopulateChild struct {
+	Foo string `json:"foo"`
+}
+
+func (c *nestedSkipPopulateChild) HandleJSONData(map[string]interface{}) {}
+
 var extraData = map[string]interface{}{
 	"extra1": "foo",
 	"extra2": float64(12),
 	"extra3": true,
 	"extra4": []interface{}{"1", false},
 }
+
+type failOverParent struct {
+	Child failOverStruct `json:"child"`
+}
+
+type failOverStruct struct {
+	A string `json:"a"`
+	B string `json:"b"`
+	C string `json:"c"`
+}
+
+func (f *failOverStruct) HandleJSONData(map[string]interface{}) {}
 
 func buildParentStruct() *parentStruct {
 	return &parentStruct{
