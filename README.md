@@ -2,11 +2,11 @@
 
 ![Marshmallow Campfire](https://raw.githubusercontent.com/PerimeterX/marshmallow/assets/campfire.png)
 
-[![CodeQL Status](https://img.shields.io/github/workflow/status/perimeterx/marshmallow/CodeQL?label=CodeQL&logo=github)](https://github.com/PerimeterX/marshmallow/actions/workflows/codeql.yml?query=branch%3Amain++)
-[![Run Tests](https://img.shields.io/github/workflow/status/perimeterx/marshmallow/Go?label=Run%20Tests&logo=github)](https://github.com/PerimeterX/marshmallow/actions/workflows/go.yml?query=branch%3Amain)
-[![Dependency Review](https://img.shields.io/github/workflow/status/perimeterx/marshmallow/Dependency%20Review?label=Dependency%20Review&logo=github)](https://github.com/PerimeterX/marshmallow/actions/workflows/dependency-review.yml?query=branch%3Amain)
+[![CodeQL Status](https://img.shields.io/github/actions/workflow/status/perimeterx/marshmallow/codeql.yml?branch=main&logo=github&label=CodeQL)](https://github.com/PerimeterX/marshmallow/actions/workflows/codeql.yml?query=branch%3Amain++)
+[![Run Tests](https://img.shields.io/github/actions/workflow/status/perimeterx/marshmallow/go.yml?branch=main&logo=github&label=Run%20Tests)](https://github.com/PerimeterX/marshmallow/actions/workflows/go.yml?query=branch%3Amain)
+[![Dependency Review](https://img.shields.io/github/actions/workflow/status/perimeterx/marshmallow/dependency-review.yml?logo=github&label=Dependency%20Review)](https://github.com/PerimeterX/marshmallow/actions/workflows/dependency-review.yml?query=branch%3Amain)
 [![Go Report Card](https://goreportcard.com/badge/github.com/perimeterx/marshmallow)](https://goreportcard.com/report/github.com/perimeterx/marshmallow)
-![Manual Code Coverage](https://img.shields.io/badge/coverage-91.9%25-green)
+![Manual Code Coverage](https://img.shields.io/badge/coverage-92.4%25-green)
 [![Go Reference](https://pkg.go.dev/badge/github.com/perimeterx/marshmallow.svg)](https://pkg.go.dev/github.com/perimeterx/marshmallow)
 [![Licence](https://img.shields.io/github/license/perimeterx/marshmallow)](LICENSE)
 [![Latest Release](https://img.shields.io/github/v/release/perimeterx/marshmallow)](https://github.com/PerimeterX/marshmallow/releases)
@@ -49,7 +49,6 @@ import (
 )
 
 func main() {
-	marshmallow.EnableCache() // this is used to boost performance, read more below
 	v := struct {
 		Foo string `json:"foo"`
 		Boo []int  `json:"boo"`
@@ -59,6 +58,8 @@ func main() {
 	// Output: v={Foo:bar Boo:[1 2 3]}, result=map[boo:[1 2 3] foo:bar goo:12.6], err=<nil>
 }
 ```
+
+**Examples can be found [here](example_test.go)**
 
 ## Performance Benchmark And Alternatives
 
@@ -182,8 +183,6 @@ Marshmallow also supports caching of refection information using
 [EnableCache](https://github.com/PerimeterX/marshmallow/blob/d3500aa5b0f330942b178b155da933c035dd3906/cache.go#L40)
 and
 [EnableCustomCache](https://github.com/PerimeterX/marshmallow/blob/d3500aa5b0f330942b178b155da933c035dd3906/cache.go#L35).
-
-**Examples can be found [here](example_test.go)**
 
 # Marshmallow Logo
 
