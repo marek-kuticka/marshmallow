@@ -14,6 +14,7 @@
 [![Issues](https://img.shields.io/github/issues-closed/perimeterx/marshmallow?color=%238250df&logo=github)](https://github.com/PerimeterX/marshmallow/issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr-closed-raw/perimeterx/marshmallow?color=%238250df&label=merged%20pull%20requests&logo=github)](https://github.com/PerimeterX/marshmallow/pulls)
 [![Commits](https://img.shields.io/github/last-commit/perimeterx/marshmallow)](https://github.com/PerimeterX/marshmallow/commits/main)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
 <img align="right" width="200" alt="marshmallow-gopher" src="https://raw.githubusercontent.com/PerimeterX/marshmallow/assets/sticker7.png">
 
@@ -184,12 +185,21 @@ Marshmallow also supports caching of refection information using
 and
 [EnableCustomCache](https://github.com/PerimeterX/marshmallow/blob/d3500aa5b0f330942b178b155da933c035dd3906/cache.go#L35).
 
-# Marshmallow Logo
+## Contact and Contribute
 
-Marshmallow logo and assets by [Adva Rom](https://www.linkedin.com/in/adva-rom-7a6738127/) are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.<br />
-
-## Contribute
+Reporting issues and requesting features may be done in our [GitHub issues page](https://github.com/PerimeterX/marshmallow/issues).
+Discussions may be conducted in our [GitHub discussions page](https://github.com/PerimeterX/marshmallow/discussions).
+For any further questions or comments you can reach us out at [open-source@humansecurity.com](mailto:open-source@humansecurity.com).
 
 Any type of contribution is warmly welcome and appreciated ❤️
+Please read our [contribution](CONTRIBUTING.md) guide for more info.
+
+If you're looking for something to get started with, tou can always follow our [issues page](https://github.com/PerimeterX/marshmallow/issues) and look for
+[good first issue](https://github.com/PerimeterX/marshmallow/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) and
+[help wanted](https://github.com/PerimeterX/marshmallow/issues?q=is%3Aissue+label%3A%22help+wanted%22+is%3Aopen) labels.
+
+## Marshmallow Logo
+
+Marshmallow logo and assets by [Adva Rom](https://www.linkedin.com/in/adva-rom-7a6738127/) are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.<br />
 
 ![Marshmallow Logo](https://raw.githubusercontent.com/PerimeterX/marshmallow/assets/marshmallow.png)
