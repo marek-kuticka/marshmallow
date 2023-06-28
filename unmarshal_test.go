@@ -2346,6 +2346,15 @@ type Person struct {
 	LastName  string `json:"lastName"`
 }
 
+type PersonNested struct {
+	FirstName string        `json:"firstName"`
+	Address   PersonAddress `json:"address"`
+}
+
+type PersonAddress struct {
+	Street string `json:"street"`
+}
+
 func TestExcludeKnownFieldsFromMap(t *testing.T) {
 	t.Run("test_exclude_known_fields_from_map_with_empty_map", func(t *testing.T) {
 		p := Person{}
@@ -2369,6 +2378,38 @@ func TestExcludeKnownFieldsFromMap(t *testing.T) {
 		}
 
 		_, exists := result["unknown"]
+		if !exists {
+			t.Errorf("unknown field is missing in the result")
+		}
+	})
+
+	t.Run("test_exclude_known_fields_from_nested_map", func(t *testing.T) {
+		p := Person{}
+		result, err := Unmarshal([]byte(`{"firstName": "string_firstName", "lastName": "string_lastName", "unknown":{"address": "string_address" }}`), &p, WithExcludeKnownFieldsFromMap(true))
+		if err != nil {
+			t.Errorf("unexpected error %v", err)
+		}
+		if len(result) != 1 {
+			t.Errorf("failure in excluding untyped fields")
+		}
+
+		_, exists := result["unknown"]
+		if !exists {
+			t.Errorf("unknown field is missing in the result")
+		}
+	})
+
+	t.Run("test_exclude_known_fields_from_nested_map_2", func(t *testing.T) {
+		p := PersonNested{}
+		result, err := Unmarshal([]byte(`{"firstName": "string_firstName", "address":{"street": "string_street", "unknown": "string_unknown" }}`), &p, WithExcludeKnownFieldsFromMap(true))
+		if err != nil {
+			t.Errorf("unexpected error %v", err)
+		}
+		if len(result) != 1 {
+			t.Errorf("failure in excluding untyped fields")
+		}
+
+		_, exists := result["address.unknown"]
 		if !exists {
 			t.Errorf("unknown field is missing in the result")
 		}
